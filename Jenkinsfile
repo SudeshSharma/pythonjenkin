@@ -29,19 +29,19 @@ pipeline {
         stage('Static code metrics') {
             steps {
                 echo "Raw metrics"
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         radon raw --json irisvmpy > raw_report.json
                         radon cc --json irisvmpy > cc_report.json
                         radon mi --json irisvmpy > mi_report.json
                         sloccount --duplicates --wide irisvmpy > sloccount.sc
                     '''
                 echo "Test coverage"
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         coverage run irisvmpy/iris.py 1 1 2 3
                         python -m coverage xml -o reports/coverage.xml
                     '''
                 echo "Style check"
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         pylint irisvmpy || true
                     '''
             }
@@ -66,7 +66,7 @@ pipeline {
 
         stage('Unit tests') {
             steps {
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         python -m pytest --verbose --junit-xml reports/unit_tests.xml
                     '''
             }
@@ -80,7 +80,7 @@ pipeline {
 
         stage('Acceptance tests') {
             steps {
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         behave -f=formatters.cucumber_json:PrettyCucumberJSONFormatter -o ./reports/acceptance.json || true
                     '''
             }
@@ -102,7 +102,7 @@ pipeline {
                 }
             }
             steps {
-                bat  ''' source activate ${BUILD_TAG}
+                sh  ''' source activate ${BUILD_TAG}
                         python setup.py bdist_wheel
                     '''
             }
@@ -124,7 +124,7 @@ pipeline {
 
     post {
         always {
-            bat 'conda remove --yes -n ${BUILD_TAG} --all'
+            sh 'conda remove --yes -n ${BUILD_TAG} --all'
         }
         failure {
             emailext (
